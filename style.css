@@ -1,0 +1,104 @@
+/* Configs gerais */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f2f2f2;
+  color: #333333;
+}
+
+
+/* Header */
+
+header {
+  background-color: white;
+  border-bottom: 5px solid #5e22f3;
+  padding: 20px;
+  text-align: center;
+
+}
+
+header img {
+  width: 250px;
+}
+
+/* Conteúdo main */
+
+main {
+  width: 90%;
+  max-width: 1100px;
+  margin: 30px auto;
+}
+
+.inicio {
+  background-color: white;
+  padding: 25px;
+  margin-bottom: 30px;
+  text-align: center;
+  border-radius: 8px;
+}
+
+button {
+  background-color: #5e22f3;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #4f1f6d;
+}
+
+#mensagem {
+  font-weight: bold;
+}
+
+.risco {
+  background-color: #FFFF00;
+  padding: 10px;
+  border-left: 4px solid #e0a800;
+  font-weight: bold;
+}
+
+/* Cards */
+
+#cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.card {
+  background-color: white;
+  border-left: 5px solid #6b2c91;
+  padding: 20px;
+  width: calc(50% - 10px);
+  border-radius: 8px;
+}
+
+.card h3 {
+  margin-top: 0;
+  color: #5e22f3;
+}
+
+.card a {
+  color: #6b2c91;
+  font-weight: bold;
+}
+
+
+/* footer */
+
+footer {
+  background-color: #6b2c91;
+  color: white;
+  padding: 20px;
+  text-align: center;
+}

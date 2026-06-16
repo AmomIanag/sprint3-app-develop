@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Motiva Challenge</title> <!-- Titulo do site -->
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <header>
+    <img src="img/logo.png" alt="Logo do projeto">  <!-- no header nao tem um titulo ou subtitulo já que a logo que eu baixei vem com um titulo já -->
+  </header>
+
+  <main>
+
+    <section class="inicio">
+      <h2>Dashboard de monitoramento</h2>
+
+      <p>
+        Este sistema apresenta informações climáticas de dez localidades
+        próximas a áreas rodoviárias do estado de São Paulo.
+      </p>
+
+      <button id="botaoBuscar">
+        Buscar dados
+      </button>
+
+      <p id="mensagem">
+        Clique no botão para carregar as informações.
+      </p>
+    </section>
+
+    <section>
+      <h2>Localidades monitoradas</h2>
+
+      <div id="cards">
+        <!-- cards que vao ser criados pelo js -->
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Projeto Challenge Fiap 2026</p>
+    <p>Dados: OpenStreetMap e Open-Meteo</p> <!-- footer -->
+  </footer>
+
+  <script src="script.js"></script>
+
+</body>
+
+</html>
