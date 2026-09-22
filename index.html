@@ -14,24 +14,24 @@
 <body>
 
   <header>
-    <img src="img/logo.png" alt="Logo do projeto">  <!-- no header nao tem um titulo ou subtitulo já que a logo que eu baixei vem com um titulo já -->
+    <img src="img/logo.png" alt="Motiva">  <!-- logo oficial do projeto -->
   </header>
 
   <main>
 
     <section class="inicio">
-      <h2>Dashboard de monitoramento</h2>
+      <h1>Dashboard de monitoramento</h1>
 
       <p>
-        Este sistema apresenta informações climáticas de dez localidades
-        próximas a áreas rodoviárias do estado de São Paulo.
+        Este sistema monitora as condições da vegetação e informações climáticas
+        de dez localidades próximas a rodovias do estado de São Paulo.
       </p>
 
-      <button id="botaoBuscar">
+      <button id="botaoBuscar" type="button">
         Buscar dados
       </button>
 
-      <p id="mensagem">
+      <p id="mensagem" role="status" aria-live="polite" aria-atomic="true">
         Clique no botão para carregar as informações.
       </p>
     </section>

@@ -1,16 +1,48 @@
-// Lista com as dez localidades que foram pedidas
+// Alturas simuladas para o protótipo acadêmico, associadas a cada localidade.
 
 const localidades = [
-  "São Paulo, SP, Brasil",
-  "Caieiras, SP, Brasil",
-  "Cajamar, SP, Brasil",
-  "Jundiaí, SP, Brasil",
-  "Itupeva, SP, Brasil",
-  "Campinas, SP, Brasil",
-  "Hortolândia, SP, Brasil",
-  "Sumaré, SP, Brasil",
-  "Americana, SP, Brasil",
-  "Limeira, SP, Brasil"
+  { nome: "São Paulo, SP, Brasil", alturaVegetacao: 12 },
+  { nome: "Caieiras, SP, Brasil", alturaVegetacao: 20 },
+  { nome: "Cajamar, SP, Brasil", alturaVegetacao: 27 },
+  { nome: "Jundiaí, SP, Brasil", alturaVegetacao: 35 },
+  { nome: "Itupeva, SP, Brasil", alturaVegetacao: 41 },
+  { nome: "Campinas, SP, Brasil", alturaVegetacao: 50 },
+  { nome: "Hortolândia, SP, Brasil", alturaVegetacao: 56 },
+  { nome: "Sumaré, SP, Brasil", alturaVegetacao: 18 },
+  { nome: "Americana, SP, Brasil", alturaVegetacao: 32 },
+  { nome: "Limeira, SP, Brasil", alturaVegetacao: 64 }
+];
+
+// Faixas usadas para classificar a altura da vegetação e recomendar uma ação.
+const faixasVegetacao = [
+  {
+    min: 0,
+    max: 20,
+    classificacao: "Normal",
+    acao: "Nenhuma intervenção necessária.",
+    classe: "status-normal"
+  },
+  {
+    min: 20,
+    max: 35,
+    classificacao: "Atenção",
+    acao: "Manter acompanhamento do ponto.",
+    classe: "status-atencao"
+  },
+  {
+    min: 35,
+    max: 50,
+    classificacao: "Risco",
+    acao: "Programar intervenção da equipe.",
+    classe: "status-risco"
+  },
+  {
+    min: 50,
+    max: null,
+    classificacao: "Crítico",
+    acao: "Realizar intervenção imediata.",
+    classe: "status-critico"
+  }
 ];
 
 
@@ -30,61 +62,76 @@ botao.addEventListener("click", buscarDados);
 
 async function buscarDados() {
   cards.innerHTML = "";
-
   mensagem.textContent = "Carregando dados...";
-
   botao.disabled = true;
+
+  const dadosLocalidades = [];
+  let houveErro = false;
 
   // For que serve para passar pelas localidades
   for (let i = 0; i < localidades.length; i++) {
     mensagem.textContent =
       "Buscando " + (i + 1) + " de " + localidades.length;
 
-    await buscarLocalidade(localidades[i]);
+    const dados = await buscarLocalidade(localidades[i]);
+
+    if (dados) {
+      dadosLocalidades.push(dados);
+    } else {
+      houveErro = true;
+    }
 
     // Pausa entre cada localidade
     await esperar();
   }
 
-  mensagem.textContent = "Dados carregados com sucesso.";
+  renderizarLocalidades(dadosLocalidades);
 
+  if (dadosLocalidades.length === 0) {
+    mensagem.textContent = "Erro ao carregar os dados. Tente novamente.";
+  } else if (houveErro) {
+    mensagem.textContent = "Dados carregados parcialmente. Algumas localidades não puderam ser consultadas.";
+  } else {
+    mensagem.textContent = "Dados carregados com sucesso.";
+  }
   botao.disabled = false;
 }
 
 
 // Busca as coordenadas da localidade no OpenStreetMap (api sugerida pelo professor)
 
-async function buscarLocalidade(nomeLocalidade) {
+async function buscarLocalidade(localidade) {
   const enderecoMapa =
     "https://nominatim.openstreetmap.org/search" +
     "?format=json" +
     "&limit=1" +
     "&q=" +
-    encodeURIComponent(nomeLocalidade);
+    encodeURIComponent(localidade.nome);
 
   try {
     const respostaMapa = await fetch(enderecoMapa);
 
     const dadosMapa = await respostaMapa.json();
 
-    if (dadosMapa.length > 0) {
-      const latitude = dadosMapa[0].lat;
-      const longitude = dadosMapa[0].lon;
-
-      await buscarClima(nomeLocalidade, latitude, longitude);
+    if (dadosMapa.length === 0) {
+      throw new Error("Localidade não encontrada.");
     }
 
+    const latitude = dadosMapa[0].lat;
+    const longitude = dadosMapa[0].lon;
+
+    return await buscarClima(localidade, latitude, longitude);
   } catch (erro) {
     mensagem.textContent = "Erro ao buscar localização.";
-
     console.log(erro);
+    return null;
   }
 }
 
 
 // Busca os dados meteorológicos no Open-Meteo (api sugerida pelo professor)
 
-async function buscarClima(nome, latitude, longitude) {
+async function buscarClima(localidade, latitude, longitude) {
   const enderecoClima =
     "https://api.open-meteo.com/v1/forecast" +
     "?latitude=" + latitude +
@@ -100,91 +147,136 @@ async function buscarClima(nome, latitude, longitude) {
     const umidade = dadosClima.current.relative_humidity_2m;
     const chuva = dadosClima.current.precipitation;
     const vento = dadosClima.current.wind_speed_10m;
-    const risco = verificarRisco( //Const que le a nossa funcao para verificar o risco com base em informacoes climáticas
-        temperatura,
-        umidade,
-        chuva,
-        vento
+    const riscoClimatico = verificarRisco(
+      temperatura,
+      umidade,
+      chuva,
+      vento
     );
 
-    criarCard( // card com as informacoes necessarias
-      nome,
+    return {
+      nome: localidade.nome,
+      alturaVegetacao: localidade.alturaVegetacao,
       latitude,
       longitude,
       temperatura,
       umidade,
       chuva,
       vento,
-      risco
-    );
+      riscoClimatico
+    };
 
   } catch (erro) {
     mensagem.textContent = "Erro ao buscar dados meteorológicos.";
-
     console.log(erro);
+    return null;
   }
 }
 
+// Recebe uma altura e retorna a faixa correspondente.
+function classificarVegetacao(altura) {
+  if (!Number.isFinite(altura) || altura < 0) {
+    return null;
+  }
+
+  for (const faixa of faixasVegetacao) {
+    const acimaDoMinimo = faixa.min === 0
+      ? altura >= faixa.min
+      : altura > faixa.min;
+    const abaixoDoMaximo = faixa.max === null || altura <= faixa.max;
+
+    if (acimaDoMinimo && abaixoDoMaximo) {
+      return faixa;
+    }
+  }
+
+  return null;
+}
+
+// Percorre os resultados e cria os cards dinamicamente.
+function renderizarLocalidades(dadosLocalidades) {
+  dadosLocalidades.forEach(function (dados) {
+    criarCard(dados);
+  });
+}
 
 // Cria um card para cada localidade
 
-function criarCard(
-  nome,
-  latitude,
-  longitude,
-  temperatura,
-  umidade,
-  chuva,
-  vento,
-  risco
-) {
-  const card = document.createElement("div");
+function criarCard(dados) {
+  const classificacao = classificarVegetacao(dados.alturaVegetacao);
 
-  card.classList.add("card");
+  if (!classificacao) {
+    console.log("Altura de vegetação inválida para " + dados.nome);
+    return;
+  }
+
+  const card = document.createElement("article");
+  card.classList.add("card", classificacao.classe);
 
   card.innerHTML = `
-    <h3>${nome}</h3>
-    
-    <p class="risco">
-      <strong>Risco identificado:</strong>
-      ${risco}
+    <span class="localizacao-rotulo">Localização</span>
+    <h3>${dados.nome}</h3>
+
+    <div class="vegetacao-resumo">
+      <div class="vegetacao-altura">
+        <span>Altura da vegetação</span>
+        <strong>${dados.alturaVegetacao} cm</strong>
+      </div>
+
+      <div class="status-grupo">
+        <span class="status-rotulo">Classificação</span>
+        <span class="status-badge">${classificacao.classificacao}</span>
+      </div>
+
+      <p class="acao-recomendada">
+        <strong>Ação recomendada:</strong>
+        ${classificacao.acao}
+      </p>
+    </div>
+
+    <h4 class="dados-climaticos">Dados climáticos e localização</h4>
+
+    <p class="risco-climatico">
+      <strong>Condição climática:</strong>
+      ${dados.riscoClimatico}
     </p>
 
-    <p>
+    <p class="dado-secundario">
       <strong>Latitude:</strong>
-      ${Number(latitude).toFixed(4)}
+      ${Number(dados.latitude).toFixed(4)}
     </p>
 
-    <p>
+    <p class="dado-secundario">
       <strong>Longitude:</strong>
-      ${Number(longitude).toFixed(4)}
+      ${Number(dados.longitude).toFixed(4)}
     </p>
 
-    <p>
+    <p class="dado-secundario">
       <strong>Temperatura:</strong>
-      ${temperatura} °C
+      ${dados.temperatura} °C
     </p>
 
-    <p>
+    <p class="dado-secundario">
       <strong>Umidade:</strong>
-      ${umidade}%
+      ${dados.umidade}%
     </p>
 
-    <p>
+    <p class="dado-secundario">
       <strong>Chuva:</strong>
-      ${chuva} mm
+      ${dados.chuva} mm
     </p>
 
-    <p>
+    <p class="dado-secundario">
       <strong>Vento:</strong>
-      ${vento} km/h
+      ${dados.vento} km/h
     </p>
 
     <a
-      href="https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}"
+      href="https://www.openstreetmap.org/?mlat=${dados.latitude}&mlon=${dados.longitude}"
       target="_blank"
+      rel="noopener noreferrer"
     >
-      Ver no mapa
+      Ver no mapa →
     </a>
   `;
 
